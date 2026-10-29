@@ -1,12 +1,15 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const { randomUUID } = require('crypto');
 const { API_URL } = require('@crud/shared');
 
 const app = express();
-const PORT = 4000;
-const webDir = path.join(__dirname, '..', 'web');
+const PORT = Number(process.env.PORT) || 4000;
+const webDistDir = path.join(__dirname, '..', 'web', 'dist');
+const webFallbackDir = path.join(__dirname, '..', 'web');
+const webDir = fs.existsSync(webDistDir) ? webDistDir : webFallbackDir;
 
 const items = [
   {
@@ -26,10 +29,6 @@ const items = [
 app.use(cors());
 app.use(express.json());
 app.use(express.static(webDir));
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(webDir, 'index.html'));
-});
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
@@ -100,6 +99,18 @@ app.delete('/api/items/:id', (req, res) => {
   res.json({ message: 'Item deleted', item: deletedItem });
 });
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(webDir, 'index.html'));
+});
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+
+  res.sendFile(path.join(webDir, 'index.html'));
+});
+
 app.listen(PORT, () => {
-  console.log(`API running on ${API_URL}`);
+  console.log(`API running on http://localhost:${PORT}${API_URL}`);
 });

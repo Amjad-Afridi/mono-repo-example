@@ -7,9 +7,11 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace apps/api",
-    "start": "npm run start --workspace apps/api",
-    "build": "echo \"No build step required for this static frontend\""
+    "dev": "concurrently \"npm run dev --workspace apps/api\" \"npm run dev --workspace apps/web\"",
+    "build": "npm run build --workspace apps/web",
+    "start": "node apps/api/server.js",
+    "test": "node --test packages/shared/index.test.js",
+    "preview": "npm run preview --workspace apps/web"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
